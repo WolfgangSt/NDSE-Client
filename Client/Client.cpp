@@ -129,7 +129,6 @@ int main(int argc, char* argv[])
 	ARM9_SetPC(loadres.arm9_entry);
 	ARM7_Continue();
 	ARM9_Continue();
-	
 
 	VideoInit2(get_extension);
 	InputInit2();
