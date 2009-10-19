@@ -1,25 +1,15 @@
 
-////////////////////////////////////////////////////////////////////////////////
-// This is temporary
-#include "../../NDSE-Core/Core/NDSE.h" 
-#include "../../../NDSE-bak/Plugins/VRAM_Reactor/VRAM_Reactor.h" 
-#include "../../../NDSE-bak/Plugins/KEYPAD_Actor/KEYPAD_Actor.h" 
-
-#ifdef _DEBUG
-#pragma comment(lib, "../../NDSE-Core/VC/Debug/NDSEd.lib")
-#pragma comment(lib, "../../../NDSE-bak/VC/Debug/VRAM_Reactord.lib")
-#pragma comment(lib, "../../../NDSE-bak/VC/Debug/KEYPAD_Actord.lib")
-#else
-#pragma comment(lib, "../../NDSE-Core/VC/Release/NDSE.lib")
-#pragma comment(lib, "../../../NDSE-bak/VC/Release/VRAM_Reactor.lib")
-#pragma comment(lib, "../../../NDSE-bak/VC/Release/KEYPAD_Actor.lib")
-#endif
+#include <NDSE_SDK.h>
+#include "../VRAM-Reactor/source/VRAM_Reactor.h" 
+#include "../KEYPAD-Actor/source/KEYPAD_Actor.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <boost/thread.hpp>
 #include <iostream>
 #include <gl/glut.h>
+
+#include <windows.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // GFX
@@ -128,8 +118,12 @@ int main(int argc, char* argv[])
 	ARM7_Init(arm7_cb);
 	ARM9_Init(arm9_cb);
 
-	util::load_result loadres;
-	UTIL_LoadFile("..\\fire.nds", &loadres, util::LH_UNKNOWN);
+	load_result loadres;
+	if (!UTIL_LoadFile("../fire.nds", &loadres, LH_UNKNOWN))
+	{
+		std::cout << "Could not open rom";
+		exit(-1);
+	}
 
 	ARM7_SetPC(loadres.arm7_entry);
 	ARM9_SetPC(loadres.arm9_entry);

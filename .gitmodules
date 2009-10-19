@@ -1,0 +1,12 @@
+[submodule "KEYPAD-Actor"]
+	path = KEYPAD-Actor
+	url = git://github.com/WolfgangSt/KEYPAD_Actor.git
+[submodule "VRAM-Reactor"]
+	path = VRAM-Reactor
+	url = git://github.com/WolfgangSt/VRAM-Reactor.git
+[submodule "NDSE-SDK"]
+	path = NDSE-SDK
+	url = git://github.com/WolfgangSt/NDSE-SDK.git
+[submodule "NDSE-Core"]
+	path = NDSE-Core
+	url = git://github.com/WolfgangSt/NDSE-Core.git
