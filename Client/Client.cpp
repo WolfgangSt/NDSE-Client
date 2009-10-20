@@ -1,4 +1,4 @@
-
+#include <cstring>
 #include <NDSE_SDK.h>
 #include "../VRAM-Reactor/source/VRAM_Reactor.h" 
 #include "../KEYPAD-Actor/source/KEYPAD_Actor.h"
@@ -7,10 +7,12 @@
 
 #include <boost/thread.hpp>
 #include <iostream>
-#include <gl/glut.h>
+#include <GL/glut.h>
 
 #ifdef WIN32
 #include <windows.h>
+#else
+#include <GL/glx.h>
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -19,6 +21,7 @@
 
 int width = 256;
 int height = 192*2;
+boost::mutex ready7, ready9;
 
 void display()
 {
@@ -86,19 +89,31 @@ void keyup2(int key, int x, int y)
 ////////////////////////////////////////////////////////////////////////////////
 // ARM7
 
-void arm7_cb(Fiber *f) {} // add code to handle CPU halts here
+void arm7_cb(Fiber *f) // add code to handle CPU halts here
+{
+	std::cout << "ARM7 halted!" << std::endl;
+	ready7.unlock();
+} 
 
 ////////////////////////////////////////////////////////////////////////////////
 // ARM9
 
-void arm9_cb(Fiber *f) {} // add code to handle CPU halts here
+void arm9_cb(Fiber *f) // add code to handle CPU halts here
+{
+	std::cout << "ARM9 halted!" << std::endl;
+	ready9.unlock();
+} 
 
 ////////////////////////////////////////////////////////////////////////////////
 // INIT
 
 void* STDCALL get_extension(const char *name)
 {
+#ifdef WIN32
 	return wglGetProcAddress(name);
+#else
+	return (void*)glXGetProcAddress((const GLubyte*)name);
+#endif
 }
 
 int main(int argc, char* argv[])
@@ -115,25 +130,38 @@ int main(int argc, char* argv[])
 	glutIdleFunc(idle);
 	glutReshapeFunc(resize);
 
+
+	ready7.lock();
+	ready9.lock();
+
 	Init();
 
 	ARM7_Init(arm7_cb);
 	ARM9_Init(arm9_cb);
+	VideoInit2(get_extension);
+	InputInit2();
+
+	// wait for both CPUs ready 
+	ready7.lock();
+	ready9.lock();
 
 	load_result loadres;
+	std::cout << "Loading rom" << std::endl;
 	if (!UTIL_LoadFile("../fire.nds", &loadres, LH_UNKNOWN))
 	{
-		std::cout << "Could not open rom";
+		std::cout << "Could not open rom" << std::endl;
 		exit(-1);
 	}
-
+	std::cout << "ARM7 entry: " << std::hex << loadres.arm7_entry << std::endl;
+	std::cout << "ARM9 entry: " << std::hex << loadres.arm9_entry << std::endl;
 	ARM7_SetPC(loadres.arm7_entry);
-	ARM9_SetPC(loadres.arm9_entry);
+	ARM9_SetPC(loadres.arm9_entry);	
+
+	std::cout << "Running now" << std::endl;
 	ARM7_Continue();
 	ARM9_Continue();
 
-	VideoInit2(get_extension);
-	InputInit2();
+	
 	glutMainLoop();
 	return 0;
 }
